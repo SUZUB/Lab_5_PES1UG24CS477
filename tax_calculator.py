@@ -33,7 +33,7 @@ NEW_SLABS = [
 
 
 def slab_rate(income):
-    """Return the marginal slab rate for a given taxable income in the new regime."""
+    """Return marginal slab rate for taxable income in new regime."""
     for limit, rate in NEW_SLABS:
         if income <= limit:
             return rate
@@ -52,7 +52,7 @@ def new_regime_tax(salary):
 
 
 def basic_exemption(age):
-    """Return the basic exemption amount according to age under the old regime."""
+    """Return basic exemption amount according to age under old regime."""
     if 60 <= age < 80:
         return 300000
     if age >= 80:
@@ -80,7 +80,7 @@ def old_regime_tax(salary, age, deductions=None):
 
 
 def better_regime(salary, age, deductions=None):
-    """Compare tax liability under both regimes and return the recommended regime."""
+    """Compare tax liability under both regimes and pick the better one."""
     new_tax = new_regime_tax(salary)
     old_tax = old_regime_tax(salary, age, deductions)
     if new_tax < old_tax:
@@ -97,7 +97,7 @@ def is_valid_pan(pan):
 
 
 def encrypt_pan(pan):
-    """Encrypt a PAN string using AES-CBC with a 16-byte initialization vector."""
+    """Encrypt a PAN string using AES-CBC with a 16-byte fixed IV."""
     iv = b"0123456789abcdef"
     encryptor = Cipher(algorithms.AES(PAN_KEY), modes.CBC(iv)).encryptor()
     padded = pan.encode().ljust(16, b" ")
@@ -123,7 +123,7 @@ def parse_form16(xml_text, strict=True):
 
 
 def run_as_cgi(app=None, debug=False):
-    """Run application as CGI (disabled to mitigate HTTPoxy vulnerabilities)."""
+    """Run app as CGI (disabled to mitigate HTTPoxy vulnerabilities)."""
     _ = (app, debug)
     raise NotImplementedError(
         "CGI execution is disabled due to HTTPoxy vulnerabilities."
@@ -148,7 +148,10 @@ def main():
     print("New regime, salary 12,75,000:", new_regime_tax(1275000))
     print("New regime, salary 18,00,000:", new_regime_tax(1800000))
     sample_deductions = {"80C": 200000, "80D": 30000}
-    print("Old regime, salary 18,00,000:", old_regime_tax(1800000, 35, sample_deductions))
+    print(
+        "Old regime, salary 18,00,000:",
+        old_regime_tax(1800000, 35, sample_deductions),
+    )
     print(f"Better regime: {better_regime(1800000, 35, sample_deductions)}")
     print(f"Basic exemption at age 80: {basic_exemption(80)}")
     print(f"PAN 'ABCDE1234FXYZ' valid? {is_valid_pan('ABCDE1234FXYZ')}")
