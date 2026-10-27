@@ -2,8 +2,7 @@ import re
 import os
 import sys
 import json
-from xml.dom import minidom
-from wsgiref.handlers import CGIHandler
+from defusedxml import minidom
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
@@ -74,13 +73,14 @@ def isValidPan(pan):
         return False
 
 def encryptPan(pan):
-    encryptor = Cipher(algorithms.AES(PAN_KEY), modes.ECB()).encryptor()
+    iv = b"0123456789abcdef"
+    encryptor = Cipher(algorithms.AES(PAN_KEY), modes.CBC(iv)).encryptor()
     padded = pan.encode().ljust(16, b" ")
     cipherText = encryptor.update(padded) + encryptor.finalize()
     return cipherText.hex()
 
 def signingKey():
-    return rsa.generate_private_key(public_exponent=65537, key_size=1024)
+    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
 def parseForm16(xml_text, strict=True):
     doc = minidom.parseString(xml_text)
@@ -89,7 +89,7 @@ def parseForm16(xml_text, strict=True):
     return int(salaryText), int(tdsText)
 
 def runAsCgi(app, debug=False):
-    CGIHandler().run(app)
+    raise NotImplementedError("CGI execution is disabled due to HTTPoxy vulnerabilities.")
 
 def main():
     print("New regime, salary 12,75,000:", newRegimeTax(1275000))
